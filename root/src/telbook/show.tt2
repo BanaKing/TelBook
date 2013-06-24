@@ -1,0 +1,23 @@
+ [% META title = 'Show Table' -%]
+<table>
+	<tr>
+		<th>Check</th>
+		<th>ID</th>
+		<th>Name</th>
+		<th>Phone</th>
+		<th>Work place id</th>
+		<th>Deleted</th>
+		<th>Edit</th>
+	</tr>
+[% FOREACH row IN table_content -%]
+  <tr>
+	<td style="text-align: center; vertical-align: middle;"><input type="checkbox" name="chek_row"></td>
+    <td>[% row.id %]</td>
+    <td>[% row.name %]</td>
+	<td>[% row.phone %]</td>
+	<td>[% row.work_place_id %]</td>
+	<td><form name="show_phone" method=POST action="/telbook/delete"><input type="submit" name="id" value="[% row.id %]"></form></td>
+    <td></td>
+  </tr>
+[% END -%]
+</table>

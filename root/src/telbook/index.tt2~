@@ -1,0 +1,11 @@
+ [% META title = 'Show Table' -%]
+<table>
+	<tr>
+		<th>Check</th>
+		<th>ID</th>
+		<th>Name</th>
+		<th>Phone</th>
+		<th>Work place id</th>
+		<th>Edit</th>
+	</tr>
+</table>

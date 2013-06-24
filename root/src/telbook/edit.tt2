@@ -1,0 +1,15 @@
+[% USE Dumper %]
+
+
+[% META title = 'Edit phone number' %]
+ [% FOREACH row IN table_content -%]
+<form name="edit_phonebook" method=POST action="[% c.uri_for("/telbook/edit/$row.id/update") | html %]">
+<table>
+    <tr><td>Id : </td><td> <input type="text" name="id" size="20" maxlength="50" value="[% row.id %]" readonly></td></tr>    
+	<tr><td>Name:</td><td><input type="text" name="name" value="[% row.name %]" title="enter name"></td></tr>
+	<tr><td>Phone number:</td><td><input type="text" name="phone" value="[% row.phone %]" title="enter phone_number"></td></tr>
+	<tr><td>Work place id:</td><td>	<input type="text" name="work_place_id"  value="[% row.work_place_id %]" title="enter work place id"></td></tr>
+</table>
+<input type="submit" name="Submit" value="Edit">
+</form>
+[% END -%]

@@ -1,0 +1,11 @@
+[% META title = 'Add phone number' %]
+ 
+<form name="add_phonebook" method=POST action="[% c.uri_for("/telbook/add/insert") | html %]">
+<table>
+  <tr><td>Name:</td><td>			<input type="text" name="name"			 value="" title="enter name"></td></tr>
+  <tr><td>Phone number:</td><td>	<input type="text" name="phone" 		 value="" title="enter phone_number"></td></tr>
+  <tr><td>Work place id:</td><td>	<input type="text" name="work_place_id"  value="" title="enter work place id"></td></tr>
+  <tr><td></td><td align="right">			<input type="submit" name="Submit" value="add">
+</td></tr>
+</table>
+</form>

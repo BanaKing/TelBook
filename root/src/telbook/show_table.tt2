@@ -1,0 +1,94 @@
+
+[% USE Dumper %]
+[% META title = 'Show Table' -%]
+[% MACRO navigat(n) BLOCK %] 
+	[% IF n > 0  %]
+	[% n=-1+n %]
+	<td><a href="[% c.uri_for("/telbook/show_table/$n") | html -%]"><<</a></td>
+	[% n = page %]
+    [% END %]
+
+    [% IF n >= 2 %]
+	[% n=-2+n %]
+	<td><a href="[% c.uri_for("/telbook/show_table/$n") | html -%]">page2left</a></td>
+	[% n = page %]
+    [% END %]
+
+    [% IF n >= 1  %]
+	[% n=-1+n %]
+	<td><a href="[% c.uri_for("/telbook/show_table/$n") | html -%]">page1left</a></td>
+	[% n = page %]
+    [% END %]
+
+    <td><p><<[% page %]>></p></td>
+
+    [% IF (n+2 <= total ) %]
+	[% n=1+n %]
+	<td><a href="[% c.uri_for("/telbook/show_table/$n") | html -%]">page1right</a></td>
+	[% n = page %]
+    [% END %]
+
+    [% IF (n+3 <= total ) %]
+	[% n=2+n %]
+	<td><a href="[% c.uri_for("/telbook/show_table/$n") | html -%]">page2right</a></td>
+	[% n = page %]
+    [% END %]
+
+    [% IF (n+2 <= total ) %]
+	[% n=1+n %]
+	<td><a href="[% c.uri_for("/telbook/show_table/$n") | html -%]">>></a></td>
+	[% n = page %]
+    [% END %]
+[% END %]
+
+
+<table cellspacing="4"  cellpadding="5" width="600">
+	<tr>
+		<th>Check</th>
+		<td align="center"><a href="[% c.uri_for("/telbook/sort/id/$order/$page") || html %]">ID</a></td>
+		<td align="center"><a href="[% c.uri_for("/telbook/sort/name/$order/$page") | html %]">Name</a></td>
+		<td align="center"><a href="[% c.uri_for("/telbook/sort/phone/$order/$page") | html %]">Phone</a></td>
+		<td align="center"><a href="[% c.uri_for("/telbook/sort/work_place_id/$order/$page") | html %]">Work Place Id</a></td>
+		<th>Deleted</th>
+		<th>Edit</th>
+	</tr>
+[% FOREACH row IN table_content -%]
+  <tr>
+	<td style="text-align: center; vertical-align: middle;"><input type="checkbox" name="chek_row"></td>
+    <td  align="center">[% row.id %]</td>
+    <td align="center">[% row.name %]</td>
+	<td align="center">[% row.phone %]</td>
+	<td align="center">[% row.work_place_id %]</td>
+	<td align="center"><a href="[% c.uri_for("/telbook/delete/$row.id") | html %]">Delete</a></td>
+	<td align="center">
+ 			<form name="edit_phonebook" method=POST action="[% c.uri_for("/telbook/edit/$row.id") %]">
+ 			<input type="submit" name="Submit" value="edit">
+ 			</form>
+ 	</td>
+  </tr>
+[% END -%]
+	<tr>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 		<td></td>
+ 		<td>
+ 			<form name="add_phonebook" method=POST action="[% c.uri_for("/telbook/add") | html %]">
+ 			<input type="submit" name="Submit" value="Add">
+ 			</form>
+ 		</td>
+ 	</tr>
+</table>
+
+
+<table align="center">
+<tr>
+[% navigat(page) %]
+<tr>
+</table>
+
+
+
+
