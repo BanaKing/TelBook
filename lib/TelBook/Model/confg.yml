@@ -1,0 +1,5 @@
+Connect_data:
+ database: CUDE 
+ user: root
+ password: w2241s
+ host: localhost

@@ -1,19 +1,27 @@
 package TelBook::Model::CrudInterface;
+use Modern::Perl;
 use Moose;
-use namespace::autoclean;
 use DBI;
 use Data::Dumper;
+use YAML::XS qw(LoadFile); 
+use namespace::autoclean;
+
 extends 'Catalyst::Model';
 
+
+my $data = YAML::XS::LoadFile ('confg.yml');
+
 my $dbh;
-my $count = 10;
+
 
 #Подключение к серверу MySQL
 sub connect_db { 
-my $database = "CUDE";
-my $user = "root";
-my $password = "w2241s";
-my $host = "localhost";
+
+my $database = $data->{Connect_data}{database};
+my $user = $data->{Connect_data}{user};
+my $password = $data->{Connect_data}{password};
+my $host = $data->{Connect_data}{host};
+
 my $data_source = "DBI:mysql:database=$database;host=$host";	
 $dbh = DBI ->connect ($data_source, $user, $password)
 	or die "Not conneted";
@@ -21,13 +29,12 @@ return 1;
 }
 
 # Число страниц 
-sub total_page {
+sub total_rec_count {
 	my ($params) = @_;
 	connect_db();
 	my $sth = $dbh->prepare( "SELECT COUNT(*) FROM telephone_book");
 	$sth->execute();
 	my $rowscount = $sth->fetchrow_array();
-	my $total = int(($rowscount-1)/$count)+1; 
 }
 
 
@@ -46,6 +53,7 @@ sub delete_row {
 	}
 	else {return "WRONG_VALUE"; }
  }
+
  # Редактирование данных
 sub edit {
 	my ($self, $params) = @_;
@@ -80,47 +88,44 @@ sub edit {
 
 # Показ данных 
 sub show {
-	my ($params, $page) = @_;
+	my ($params) = @_;
 	connect_db();
 	my $where;
+	my $sort = '';
+	my $limit = '';
 
-	if ($params->{id} =~ m/\d{1,11}/){
+	# Вывод данных по ID
+	if ($params->{id} =~ m/\d{1,11}/){	 
 		$where = "id=".$params->{id};
 	}
 	else {
 			$where = '1';
 	}
 
-	my $limit ="LIMIT ".$page*$count.",".$count; 
+	# Постраничная навигация
+	if ($params->{page_size}){
+		$limit ="LIMIT ".$params->{start_index}.",".$params->{page_size};
+	}
+
+	# Сортировка
+	if ( $params->{sorting} ) {
+		$sort = "ORDER BY ".$params->{sorting};
+	}  
+
 	my $sql ="
 		SELECT * 
 		FROM telephone_book
-		WHERE $where 
+		WHERE $where
+		$sort
 		$limit
 		";
-	my $hash_ref = $dbh->selectall_arrayref("$sql",
+	my $sel_array = $dbh->selectall_arrayref("$sql",
 		{Columns=>{} } );
-}
-
-
-#Сортировка 
-sub sort {
-	my ($fldid, $order, $page) = @_;
-	connect_db();
-	my $sort = '';
-	if ( $fldid ) {
-		$sort = "ORDER BY $fldid " . ( $order || 'DESC' );
-
-	}  
-
-	my $limit ="LIMIT ".$page*$count.",".$count; 
-
-	my $sth = $dbh->selectall_arrayref("SELECT * from telephone_book $sort $limit", {Columns=>{} } ); 
 }
 
 # Втавка данных 
 sub add {
-	my ($self, $params) = @_;
+	my ($params) = @_;
 	connect_db();
 	my @array;
 
@@ -143,8 +148,10 @@ sub add {
 			}
 			else {return "WRONG_PARAMS";}
 	}
-	return 1;
+	my $insertid = $dbh->{'mysql_insertid'};
 }
+
+
 
 1;
 

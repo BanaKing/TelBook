@@ -14,7 +14,8 @@ __PACKAGE__->config(
     # Set to 1 for detailed timer stats in your HTML as comments
     TIMER              => 0,
     # This is your wrapper template located in the 'root/src'
-    WRAPPER => 'wrapper.tt2',
+    WRAPPER => 'title.tt2',
+    render_die => 1,
 );
 
 =head1 NAME

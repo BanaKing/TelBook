@@ -1,0 +1,55 @@
+[% META title = 'Show Title' -%]
+[% USE Dumper %]
+
+<div id="TelTable"></div>
+<button id="DeleteAllButton" class="ui-button ui-widget ui-state-default ui-corner-all ui-button-text-only" role="button" aria-disabled="false"><span class="ui-button-text">
+    Delete all</span></button>
+<script type="text/javascript">
+    $(document).ready(function () {
+	        $('#TelTable').jtable({
+		            title: 'Table of phone',
+					paging: true, //Enable paging
+                    pageSize: 10, //Set page size (default: 10)
+                    sorting: true, //Enable sorting
+                    defaultSorting: 'Name ASC', //Set default sorting
+		            selecting: true, //Enable selecting
+                    multiselect: true, //Allow multiple selecting
+		            selectingCheckboxes: true, //Show checkboxes on first column
+
+		            actions: {
+			                listAction: '/telbook/show',
+			                createAction: '/telbook/add',
+			                updateAction: '/telbook/edit',
+			                deleteAction: '/telbook/delete'
+		            },
+
+		            fields: {
+			                id: {
+				                    title: 'ID',
+				                    width: '10%',
+                                    key: true,
+				                    
+
+			                },
+			                name: {
+				                    title: 'Name',
+				                    width: '30%'
+			                },
+			                phone: {
+				                    title: 'Phone',
+				                    width: '30%'
+			                },
+							work_place_id: {
+				                    title: 'Work_place_id',
+				                    width: '10%'
+			                }
+		            }
+	        });
+			$('#TelTable').jtable('load');
+			$('#DeleteAllButton').button().click(function () {
+            var $selectedRows = $('#TelTable').jtable('selectedRows');
+            $('#TelTable').jtable('deleteRows', $selectedRows);
+        });
+
+    });
+</script>

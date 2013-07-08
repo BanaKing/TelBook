@@ -1,7 +1,8 @@
 package TelBook::Controller::TelBook;
 use Moose;
 use namespace::autoclean;
-
+use Data::Dumper;
+use JSON::XS;
 BEGIN { extends 'Catalyst::Controller'; }
 
 =head1 NAME
@@ -21,127 +22,113 @@ Catalyst Controller.
 
 =cut
 
+ 
+
 # Начальная страница 
-sub index :Path :Args(0) {
+sub index :Path :Args() {
     my ( $self, $c ) = @_;
-    $c->response->redirect( '/telbook/show_table/0' );
+    $c->stash (template => 'telbook/title.tt2');
 }
 
-# Показ таблицы данных 
-sub show_table :Chained('/') :PathPart('telbook/show_table') :Args() {
-	my ( $self, $c, $page) = @_;
+
+sub show :Chained('/') :PathPart('telbook/show') :Args() {
+	my ( $self, $c) = @_;
+	my $json_xs = JSON::XS->new();
 	my $p = $c->request->params; 
-	my $params;
-
-    # Навигация
-	my $total = TelBook::Model::CrudInterface::total_page($page);
-    $c->stash->{table_content} = TelBook::Model::CrudInterface::show($params, $page);
-	$c->stash->{page} = $page;
-	$c->stash->{total} = $total;
-}
-
-# Сортировка по значению 
-sub sort :Chained('/') :PathPart('telbook/sort') :Args() {
-	my ($self, $c, $fldid, $order, $page) = @_;
-	$c->model ('CrudInterface')->connect_db();
-
-
-	# Переключатель сортировки
-	if ($order eq "ASC"){ 
-		$order = "DESC";
-		$c->stash->{order}="DESC";
-	}
-	else { 
-		$order = "ASC";
-		$c->stash->{order}="ASC";
-
-	}
-
-	# Навигация
-	my $total = TelBook::Model::CrudInterface::total_page($page);
-	$c->stash->{page} = $page;
-	$c->stash->{total} = $total;
-	$c->stash->{table_content} = TelBook::Model::CrudInterface::sort($fldid, $order, $page);
-	$c->stash (template => 'telbook/show_table.tt2');
-}
-
-# Добавление данных 
-sub add :Chained('/') :PathPart('telbook/add') {
-	my ($self, $c, $flag) = @_;
-	my $p = $c->request->params; 
+	my $res = $c-> response;
 
 	my $params = { 
-        name=>$p->{name},
-        phone=>$p->{phone},
-        work_place_id=>$p->{work_place_id},
+        page_size 	=> $p->{jtPageSize},
+        start_index => $p->{jtStartIndex},
+        sorting 	=> $p->{jtSorting},
     };
 
-	$c->model ('CrudInterface')->connect_db();
-
-	# Проверка на правильность данных и обработка запроса 
-	if ($flag eq "insert"){
-     	if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,50}/){
-     		$c->model ('CrudInterface')->TelBook::Model::CrudInterface::add($params);
-     		$c->stash->{status_msg} = "Добавлены новые данные Имя: $params->{name} Телефон : $params->{phone} Место работы : $params->{work_place_id}  ";
-     		$c->stash (template => 'telbook/show_table.tt2');
-			$c->forward('show_table');
-		}
-		else {
-			$c->stash->{error_msg} = 'Введены неверные значения';
-			$c->stash (template => 'telbook/show_table.tt2');
-			$c->forward('show_table');
-
-		}
-    }
+    my %json;
+    my $data = TelBook::Model::CrudInterface::show($params);
+	$json{Result} = "OK";
+	$json{Records} = $data;
+	$json{TotalRecordCount} = TelBook::Model::CrudInterface::total_rec_count();
+	$data = $json_xs->encode (\%json);
+	$res->body ($data);
 }
 
 
-# Удаление 
-sub delete :Chained('/') :PathPart('telbook/delete') {
-	my ($self, $c, $id) = @_;
+sub delete :Chained('/') :PathPart('telbook/delete') :Args() {
+	my ( $self, $c) = @_;
+	my $json_xs = JSON::XS->new();
 
-	$c->model ('CrudInterface')->connect_db();
+	my $id = $c->request->params->{id};
 	$c->model ('CrudInterface')->delete_row($id);
-	$c->stash->{status_msg} = 'Строка со значением id : '.$id.' была удалена';
-	$c->stash(template => 'telbook/show_table.tt2');
-	$c->forward('show_table/0');
+
+	my %json;
+	$json{Result} = "OK";
+	my $data = $json_xs->encode (\%json);
+	$c->response->body($data);
 }
 
-# Редактирование 
-sub edit :Chained('/') :PathPart('telbook/edit'){
-	my ($self, $c, $id, $flag) = @_;
+sub edit : Chained('/') :PathPart('telbook/edit') :Args() {
+	my ($self, $c) = @_;
+	my $json_xs = JSON::XS->new();
 	my $p = $c->request->params; 
+	my $res = $c->response;
 
-	# Подключение и вывод запрашиваемой таблицы 
-	$c->model ('CrudInterface')->connect_db();
+	my %json;
+
 
 	my $params = { 
-		id => $id,
-        name => $p->{name},
-        phone => $p->{phone},
-        work_place_id => $p->{work_place_id},
+		id 				=> $p->{id} || '',
+        name 			=> $p->{name} || '',
+        phone 			=> $p->{phone} || '',
+        work_place_id 	=> $p->{work_place_id} || 0,
        };
- 	$c->stash->{table_content} = TelBook::Model::CrudInterface::show($params);
 
     # Отправка данных на изменение 
-	if ($flag eq "update"){
-     		if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,50}/){
-     			$c->model ('CrudInterface')->TelBook::Model::CrudInterface::edit($params);
-     			$c->stash->{table_content} = TelBook::Model::CrudInterface::show($params);
-     			$c->stash (template => 'telbook/show_table.tt2');
-				$c->stash->{status_msg} = 'Строка со значением id : '.$id.' была изменена';
+    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,50}/){
+     	$c->model ('CrudInterface')->TelBook::Model::CrudInterface::edit($params);
+		$json{Result} = "OK";
+	}
 
-			}
+	else {
+		$json{Result} = "ERROR"
+	}
 
-		else {
-			$c->stash->{error_msg} = 'Введены неверные значения';
-			$c->stash (template => 'telbook/show_table.tt2');
-			$c->response->redirect( '/telbook/show_table/0' );
 
-			$c->forward('show_table');
-		}
-	}	
+	my $data = $json_xs->encode (\%json);	
+	$res->body($data);
 }
+
+sub add : Chained('/') :PathPart('telbook/add') :Args() {
+	my ( $self, $c) = @_;
+
+	my $json_xs = JSON::XS->new();
+	my $p = $c->request->params; 
+	my $res = $c->response;
+
+    my %json;
+    my $data;
+
+	my $params = { 
+        name 			=> $p->{name} || '',
+        phone			=> $p->{phone} || '',
+        work_place_id	=> $p->{work_place_id} || 0,
+    };
+
+    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,50}/){
+     	my $last_id = TelBook::Model::CrudInterface::add($params);
+     	$params ->{id} = $last_id;
+     	$data = TelBook::Model::CrudInterface::show($params);
+     	$json{Result} = "OK";
+     	$json{Record} = $data->[0];			    
+	}
+	else {
+		$json{Result}	= "ERROR";
+		$json{Message} 	= "ERROR MESSAGE";
+	}
+
+	$data = $json_xs->encode (\%json);
+     		$res->body ($data);
+}
+
 =encoding utf8
 
 =head1 AUTHOR

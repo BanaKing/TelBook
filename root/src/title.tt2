@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" [%#
+    %]"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<script src="/scripts/jquery-1.9.1.js"></script>
+<script src="/scripts/jquery-ui-1.10.3.custom.min.js"></script>
+<link href="/jtable/themes/metro/blue/jtable.min.css" rel="stylesheet" type="text/css" />
+<link href="/static/css/jquery-ui-1.10.3.custom.min.css" rel="stylesheet" type="text/css" />
+
+<!-- Include jTable script file. -->
+<script src="/jtable/jquery.jtable.min.js" type="text/javascript"></script>
+
+<title>[% template.title or "My Catalyst App!" %]</title>
+</head>
+ 
+<body> 
+<div id="content">
+    [% content %]
+</div><!-- end content -->
+</div><!-- end bodyblock -->
+ 
+
+</div><!-- end outer -->
+ 
+</body>
+</html>
+
