@@ -1,0 +1,1542 @@
+
+
+# --------------
+# Please enter the commit message for your changes. Everything below
+# this paragraph is ignored, and an empty message aborts the commit.
+# Just close the window to accept your message.
+diff --git a/COMMIT_EDITMSG.COMMIT_EDITMSG b/COMMIT_EDITMSG.COMMIT_EDITMSG
+new file mode 100644
+index 0000000..8af2a8c
+--- /dev/null
++++ b/COMMIT_EDITMSG.COMMIT_EDITMSG
+@@ -0,0 +1,768 @@
++
++
++# --------------
++# Please enter the commit message for your changes. Everything below
++# this paragraph is ignored, and an empty message aborts the commit.
++# Just close the window to accept your message.
++diff --git a/chek_val.pl b/chek_val.pl
++new file mode 100644
++index 0000000..0570320
++--- /dev/null
+++++ b/chek_val.pl
++@@ -0,0 +1,28 @@
+++#!usr/bin/perl
+++
+++use DBI;
+++use Modern::Perl;
+++use Data::Dumper;
+++use YAML::XS qw(LoadFile);
+++
+++
+++my $data = YAML::XS::LoadFile ('confg.yml');
+++
+++my $dbh;
+++
+++print Dumper ($data);
+++#Ïîäêëþ÷åíèå ê ñåðâåðó MySQL
+++sub connect_db {
+++
+++my $database = $data->{Connect_data}{database};
+++my $user = $data->{Connect_data}{user};
+++my $password = $data->{Connect_data}{password};
+++my $host = $data->{Connect_data}{host};
+++
+++my $data_source = "DBI:mysql:database=$database;host=$host";
+++$dbh = DBI ->connect ($data_source, $user, $password)
+++   or die "Not conneted";
+++return 1;
+++}
+++
+++
++diff --git a/demon.pl b/demon.pl
++new file mode 100644
++index 0000000..bf193f2
++--- /dev/null
+++++ b/demon.pl
++@@ -0,0 +1,100 @@
+++#!/usr/bin/perl
+++
+++use Modern::Perl;
+++use DBI;
+++use Data::Dumper;
+++use YAML::XS qw(LoadFile);
+++
+++use Daemon::Generic;
+++
+++my $data = YAML::XS::LoadFile ('confg.yml');
+++my $dbh;
+++
+++newdaemon(
+++   progname        => 'chek_data',
+++   pidfile         => '/tmp/ticktockd.pid',
+++   );
+++
+++
+++sub gd_run {
+++   connect_db ();
+++   while (1) {
+++       my $data = get_data ();
+++       if (@{$data}) {
+++           my $not_check_data = check_data ($data);
+++       }
+++       else {
+++           print "Not data \n";
+++       }
+++
+++       sleep (5);
+++}
+++
+++
+++
+++}
+++
+++sub output {
+++   my ($n) =  @_;
+++   open (OUTPUT, ">>", "ex1.ot")
+++       or die return " not correct";
+++   print OUTPUT  Dumper ($n);
+++   close OUTPUT;
+++   return 1;
+++}
+++
+++#Ïîäêëþ÷åíèå ê ñåðâåðó MySQL
+++sub connect_db {
+++
+++   my $database = $data->{Connect_data}{database};
+++   my $user = $data->{Connect_data}{user};
+++   my $password = $data->{Connect_data}{password};
+++   my $host = $data->{Connect_data}{host};
+++
+++   my $data_source = "DBI:mysql:database=$database;host=$host";
+++   $dbh = DBI ->connect ($data_source, $user, $password)
+++       or die "Not conneted";
+++   return 1;
+++}
+++
+++sub get_data {
+++   my $sql = "SELECT *
+++            FROM telephone_book
+++            WHERE chek_value ='no'
+++            ";
+++   my $sel_array = $dbh->selectall_arrayref ("$sql", {Slice => {} } );
+++   return $sel_array;
+++}
+++
+++sub check_data {
+++   my ($data) = @_;
+++   my @not_check_data;
+++   my $chek_value;
+++   foreach my $row (@{$data}) {
+++       return "NOT HASH IN VALUE" unless ref($row) eq "HASH";
+++       if (${$row}{name} =~ m/^.{5,30}$/ & ${$row}{phone} =~ m/^.{8,15}$/ & ${$row}{work_place_id} =~ m/^\d{1,11}$/){
+++           $chek_value = "success";
+++       }
+++       else {
+++           $chek_value = "fail";
+++           print "WORK\n";
+++           push @not_check_data, { %{$row} };
+++       }
+++       #update_row( ${$row}{id}, $chek_value ) ;
+++   }
+++   print Dumper (@not_check_data);
+++   return \@not_check_data;
+++}
+++
+++
+++sub update_row {
+++   my ($row_id, $chek_value) = @_;
+++   print Dumper ($row_id);
+++   my $sql = "UPDATE telephone_book SET chek_value=? WHERE id = ?";
+++   my $sth  = $dbh->do($sql, undef, $chek_value, $row_id);
+++   print Dumper ($sth);
+++}
+++
+++sub send_mail {
+++
+++}
++diff --git a/ex1.ot b/ex1.ot
++new file mode 100644
++index 0000000..cfcd3b5
++--- /dev/null
+++++ b/ex1.ot
++@@ -0,0 +1,492 @@
+++$VAR1 = [
+++          [
+++            '1',
+++            'Patrik',
+++            '12312',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '22',
+++            'Cha5k No6ris',
+++            ' 7960123123',
+++            '0',
+++            'no'
+++          ],
+++          [
+++            '24',
+++            'Cha5k No6ris',
+++            ' 7960123123',
+++            '0',
+++            'no'
+++          ],
+++          [
+++            '26',
+++            'Cha5k No6ris',
+++            ' 7960123123',
+++            '0',
+++            'no'
+++          ],
+++          [
+++            '28',
+++            'Cha5k No6ris',
+++            ' 7960123123',
+++            '0',
+++            'no'
+++          ],
+++          [
+++            '30',
+++            'Cha5k No6ris',
+++            ' 7960123123',
+++            '0',
+++            'no'
+++          ],
+++          [
+++            '31',
+++            'addTest',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '32',
+++            'addTest',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '33',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '34',
+++            'New Name',
+++            '+7960123123',
+++            '2147483647',
+++            'no'
+++          ],
+++          [
+++            '36',
+++            'Test Name 4 ',
+++            '12312',
+++            '0',
+++            'no'
+++          ],
+++          [
+++            '37',
+++            'Test Name 4 ',
+++            '12312',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '38',
+++            'Test Name 4 ',
+++            '12312',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '39',
+++            'Add Test1',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '40',
+++            'Cha5k No6ris',
+++            '12312',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '41',
+++            'Test Name 45',
+++            '134',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '42',
+++            'Test Name 45',
+++            '134',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '43',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '44',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '45',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '46',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '47',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '48',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '49',
+++            'Cha5k No6ris',
+++            '12312',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '50',
+++            'admin',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '51',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '52',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '53',
+++            'New Name',
+++            '+797123675',
+++            '4',
+++            'no'
+++          ],
+++          [
+++            '54',
+++            'Add Test',
+++            '12312',
+++            '2',
+++            'no'
+++          ],
+++          [
+++            '55',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '56',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '57',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '58',
+++            'Chak Noris',
+++            '+7960123123',
+++            '2',
+++            'no'
+++          ],
+++          [
+++            '59',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '61',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '62',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '63',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '64',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '65',
+++            'Test Name 4 ',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '66',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '67',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '2',
+++            'no'
+++          ],
+++          [
+++            '68',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '69',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '70',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '71',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '74',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '75',
+++            'Cha5k No6ris',
+++            '12312',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '76',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '77',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '78',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '79',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '81',
+++            'qwe',
+++            'w1we',
+++            '312',
+++            'no'
+++          ],
+++          [
+++            '82',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '83',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '85',
+++            'Add Test',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '86',
+++            'admin',
+++            '+797123675',
+++            '2',
+++            'no'
+++          ],
+++          [
+++            '87',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '88',
+++            'eqweqweqe',
+++            '12312312',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '90',
+++            'Add Test2',
+++            '+7960123123',
+++            '2',
+++            'no'
+++          ],
+++          [
+++            '91',
+++            'New Name',
+++            '+79601231231',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '92',
+++            'Add Test3',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '93',
+++            'Add Test3',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '94',
+++            'Add Test3',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '95',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '96',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '97',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '98',
+++            'Cha5k No6ris',
+++            '+7960123123',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '100',
+++            'qweqweqwe',
+++            'qweqwe',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '101',
+++            'asdasd',
+++            'qwedqwd',
+++            '1',
+++            'no'
+++          ],
+++          [
+++            '142',
+++            'qwertyui',
+++            '123456790',
+++            '1',
+++            'no'
+++          ]
+++        ];
++diff --git a/lib/TelBook/Controller/TelBook.pm b/lib/TelBook/Controller/TelBook.pm
++index 286ad37..518998d 100644
++--- a/lib/TelBook/Controller/TelBook.pm
+++++ b/lib/TelBook/Controller/TelBook.pm
++@@ -113,7 +113,7 @@ sub add : Chained('/') :PathPart('telbook/add') :Args() {
++         work_place_id  => $p->{work_place_id} || 0,
++     };
++
++-    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,50}/){
+++    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,11}/){
++        my $last_id = TelBook::Model::CrudInterface::add($params);
++        $params ->{id} = $last_id;
++        $data = TelBook::Model::CrudInterface::show($params);
++diff --git a/lib/TelBook/Model/CrudInterface.pm b/lib/TelBook/Model/CrudInterface.pm
++index ed7809b..d84fe89 100644
++--- a/lib/TelBook/Model/CrudInterface.pm
+++++ b/lib/TelBook/Model/CrudInterface.pm
++@@ -3,7 +3,7 @@ use Modern::Perl;
++ use Moose;
++ use DBI;
++ use Data::Dumper;
++-use YAML::XS qw(LoadFile);
+++use YAML::XS qw(LoadFile);
++ use namespace::autoclean;
++
++ extends 'Catalyst::Model';
++@@ -15,20 +15,20 @@ my $dbh;
++
++
++ #Ïîäêëþ÷åíèå ê ñåðâåðó MySQL
++-sub connect_db {
+++sub connect_db {
++
++ my $database = $data->{Connect_data}{database};
++ my $user = $data->{Connect_data}{user};
++ my $password = $data->{Connect_data}{password};
++ my $host = $data->{Connect_data}{host};
++
++-my $data_source = "DBI:mysql:database=$database;host=$host";
+++my $data_source = "DBI:mysql:database=$database;host=$host";
++ $dbh = DBI ->connect ($data_source, $user, $password)
++    or die "Not conneted";
++ return 1;
++ }
++
++-# ×èñëî ñòðàíèö
+++# ×èñëî ñòðàíèö
++ sub total_rec_count {
++    my ($params) = @_;
++    connect_db();
++@@ -42,7 +42,7 @@ sub total_rec_count {
++ sub delete_row {
++    my ($self, $id) = @_;
++    connect_db();
++-   my $sql = "DELETE FROM telephone_book
+++   my $sql = "DELETE FROM telephone_book
++        WHERE id = ?";
++    if ($id =~ m/\d{1,11}/){
++        my $sth = $dbh -> prepare("$sql")
++@@ -74,7 +74,7 @@ sub edit {
++
++    foreach my $one_set (@set){
++        if ($one_set){
++-           my $sql = "UPDATE telephone_book
+++           my $sql = "UPDATE telephone_book
++            SET $one_set
++            WHERE id=? ";
++            my $sth =$dbh -> prepare ("$sql")
++@@ -86,7 +86,7 @@ sub edit {
++    return 1;
++ }
++
++-# Ïîêàç äàííûõ
+++# Ïîêàç äàííûõ
++ sub show {
++    my ($params) = @_;
++    connect_db();
++@@ -95,7 +95,7 @@ sub show {
++    my $limit = '';
++
++    # Âûâîä äàííûõ ïî ID
++-   if ($params->{id} =~ m/\d{1,11}/){
+++   if ($params->{id} =~ m/\d{1,11}/){
++        $where = "id=".$params->{id};
++    }
++    else {
++@@ -110,10 +110,10 @@ sub show {
++    # Ñîðòèðîâêà
++    if ( $params->{sorting} ) {
++        $sort = "ORDER BY ".$params->{sorting};
++-   }
+++   }
++
++    my $sql ="
++-       SELECT *
+++       SELECT *
++        FROM telephone_book
++        WHERE $where
++        $sort
++@@ -123,7 +123,7 @@ sub show {
++        {Columns=>{} } );
++ }
++
++-# Âòàâêà äàííûõ
+++# Âòàâêà äàííûõ
++ sub add {
++    my ($params) = @_;
++    connect_db();
++@@ -134,7 +134,7 @@ sub add {
++    }
++
++    foreach (@array) {
++-           if ($_ =~ m /(^(.{3,50});(.{3,15});(\d{1,11})$)/){
+++           if ($_ =~ m /(^(.{3,50});(.{3,15});(.{1,11})$)/){
++            my $name_i = $2;
++            my $phone_i = $3;
++            my $work_place_id_i = $4;
++@@ -179,4 +179,4 @@ it under the same terms as Perl itself.
++
++ __PACKAGE__->meta->make_immutable;
++
++-1;
++\ No newline at end of file
+++1;
+diff --git a/chek_val.pl b/chek_val.pl
+new file mode 100644
+index 0000000..0570320
+--- /dev/null
++++ b/chek_val.pl
+@@ -0,0 +1,28 @@
++#!usr/bin/perl
++
++use DBI;
++use Modern::Perl;
++use Data::Dumper;
++use YAML::XS qw(LoadFile);
++
++
++my $data = YAML::XS::LoadFile ('confg.yml');
++
++my $dbh;
++
++print Dumper ($data);
++#ÐŸÐ¾Ð´ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ Ðº ÑÐµÑ€Ð²ÐµÑ€Ñƒ MySQL
++sub connect_db {
++
++my $database = $data->{Connect_data}{database};
++my $user = $data->{Connect_data}{user};
++my $password = $data->{Connect_data}{password};
++my $host = $data->{Connect_data}{host};
++
++my $data_source = "DBI:mysql:database=$database;host=$host";
++$dbh = DBI ->connect ($data_source, $user, $password)
++   or die "Not conneted";
++return 1;
++}
++
++
+diff --git a/demon.pl b/demon.pl
+new file mode 100644
+index 0000000..bf193f2
+--- /dev/null
++++ b/demon.pl
+@@ -0,0 +1,100 @@
++#!/usr/bin/perl
++
++use Modern::Perl;
++use DBI;
++use Data::Dumper;
++use YAML::XS qw(LoadFile);
++
++use Daemon::Generic;
++
++my $data = YAML::XS::LoadFile ('confg.yml');
++my $dbh;
++
++newdaemon(
++   progname        => 'chek_data',
++   pidfile         => '/tmp/ticktockd.pid',
++   );
++
++
++sub gd_run {
++   connect_db ();
++   while (1) {
++       my $data = get_data ();
++       if (@{$data}) {
++           my $not_check_data = check_data ($data);
++       }
++       else {
++           print "Not data \n";
++       }
++
++       sleep (5);
++}
++
++
++
++}
++
++sub output {
++   my ($n) =  @_;
++   open (OUTPUT, ">>", "ex1.ot")
++       or die return " not correct";
++   print OUTPUT  Dumper ($n);
++   close OUTPUT;
++   return 1;
++}
++
++#ÐŸÐ¾Ð´ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ Ðº ÑÐµÑ€Ð²ÐµÑ€Ñƒ MySQL
++sub connect_db {
++
++   my $database = $data->{Connect_data}{database};
++   my $user = $data->{Connect_data}{user};
++   my $password = $data->{Connect_data}{password};
++   my $host = $data->{Connect_data}{host};
++
++   my $data_source = "DBI:mysql:database=$database;host=$host";
++   $dbh = DBI ->connect ($data_source, $user, $password)
++       or die "Not conneted";
++   return 1;
++}
++
++sub get_data {
++   my $sql = "SELECT *
++            FROM telephone_book
++            WHERE chek_value ='no'
++            ";
++   my $sel_array = $dbh->selectall_arrayref ("$sql", {Slice => {} } );
++   return $sel_array;
++}
++
++sub check_data {
++   my ($data) = @_;
++   my @not_check_data;
++   my $chek_value;
++   foreach my $row (@{$data}) {
++       return "NOT HASH IN VALUE" unless ref($row) eq "HASH";
++       if (${$row}{name} =~ m/^.{5,30}$/ & ${$row}{phone} =~ m/^.{8,15}$/ & ${$row}{work_place_id} =~ m/^\d{1,11}$/){
++           $chek_value = "success";
++       }
++       else {
++           $chek_value = "fail";
++           print "WORK\n";
++           push @not_check_data, { %{$row} };
++       }
++       #update_row( ${$row}{id}, $chek_value ) ;
++   }
++   print Dumper (@not_check_data);
++   return \@not_check_data;
++}
++
++
++sub update_row {
++   my ($row_id, $chek_value) = @_;
++   print Dumper ($row_id);
++   my $sql = "UPDATE telephone_book SET chek_value=? WHERE id = ?";
++   my $sth  = $dbh->do($sql, undef, $chek_value, $row_id);
++   print Dumper ($sth);
++}
++
++sub send_mail {
++
++}
+diff --git a/ex1.ot b/ex1.ot
+new file mode 100644
+index 0000000..cfcd3b5
+--- /dev/null
++++ b/ex1.ot
+@@ -0,0 +1,492 @@
++$VAR1 = [
++          [
++            '1',
++            'Patrik',
++            '12312',
++            '1',
++            'no'
++          ],
++          [
++            '22',
++            'Cha5k No6ris',
++            ' 7960123123',
++            '0',
++            'no'
++          ],
++          [
++            '24',
++            'Cha5k No6ris',
++            ' 7960123123',
++            '0',
++            'no'
++          ],
++          [
++            '26',
++            'Cha5k No6ris',
++            ' 7960123123',
++            '0',
++            'no'
++          ],
++          [
++            '28',
++            'Cha5k No6ris',
++            ' 7960123123',
++            '0',
++            'no'
++          ],
++          [
++            '30',
++            'Cha5k No6ris',
++            ' 7960123123',
++            '0',
++            'no'
++          ],
++          [
++            '31',
++            'addTest',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '32',
++            'addTest',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '33',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '34',
++            'New Name',
++            '+7960123123',
++            '2147483647',
++            'no'
++          ],
++          [
++            '36',
++            'Test Name 4 ',
++            '12312',
++            '0',
++            'no'
++          ],
++          [
++            '37',
++            'Test Name 4 ',
++            '12312',
++            '1',
++            'no'
++          ],
++          [
++            '38',
++            'Test Name 4 ',
++            '12312',
++            '1',
++            'no'
++          ],
++          [
++            '39',
++            'Add Test1',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '40',
++            'Cha5k No6ris',
++            '12312',
++            '1',
++            'no'
++          ],
++          [
++            '41',
++            'Test Name 45',
++            '134',
++            '1',
++            'no'
++          ],
++          [
++            '42',
++            'Test Name 45',
++            '134',
++            '1',
++            'no'
++          ],
++          [
++            '43',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '44',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '45',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '46',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '47',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '48',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '49',
++            'Cha5k No6ris',
++            '12312',
++            '1',
++            'no'
++          ],
++          [
++            '50',
++            'admin',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '51',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '52',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '53',
++            'New Name',
++            '+797123675',
++            '4',
++            'no'
++          ],
++          [
++            '54',
++            'Add Test',
++            '12312',
++            '2',
++            'no'
++          ],
++          [
++            '55',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '56',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '57',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '58',
++            'Chak Noris',
++            '+7960123123',
++            '2',
++            'no'
++          ],
++          [
++            '59',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '61',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '62',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '63',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '64',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '65',
++            'Test Name 4 ',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '66',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '67',
++            'Cha5k No6ris',
++            '+7960123123',
++            '2',
++            'no'
++          ],
++          [
++            '68',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '69',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '70',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '71',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '74',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '75',
++            'Cha5k No6ris',
++            '12312',
++            '1',
++            'no'
++          ],
++          [
++            '76',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '77',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '78',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '79',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '81',
++            'qwe',
++            'w1we',
++            '312',
++            'no'
++          ],
++          [
++            '82',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '83',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '85',
++            'Add Test',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '86',
++            'admin',
++            '+797123675',
++            '2',
++            'no'
++          ],
++          [
++            '87',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '88',
++            'eqweqweqe',
++            '12312312',
++            '1',
++            'no'
++          ],
++          [
++            '90',
++            'Add Test2',
++            '+7960123123',
++            '2',
++            'no'
++          ],
++          [
++            '91',
++            'New Name',
++            '+79601231231',
++            '1',
++            'no'
++          ],
++          [
++            '92',
++            'Add Test3',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '93',
++            'Add Test3',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '94',
++            'Add Test3',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '95',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '96',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '97',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '98',
++            'Cha5k No6ris',
++            '+7960123123',
++            '1',
++            'no'
++          ],
++          [
++            '100',
++            'qweqweqwe',
++            'qweqwe',
++            '1',
++            'no'
++          ],
++          [
++            '101',
++            'asdasd',
++            'qwedqwd',
++            '1',
++            'no'
++          ],
++          [
++            '142',
++            'qwertyui',
++            '123456790',
++            '1',
++            'no'
++          ]
++        ];
+diff --git a/lib/TelBook/Controller/TelBook.pm b/lib/TelBook/Controller/TelBook.pm
+index 286ad37..518998d 100644
+--- a/lib/TelBook/Controller/TelBook.pm
++++ b/lib/TelBook/Controller/TelBook.pm
+@@ -113,7 +113,7 @@ sub add : Chained('/') :PathPart('telbook/add') :Args() {
+         work_place_id  => $p->{work_place_id} || 0,
+     };
+
+-    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,50}/){
++    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,11}/){
+        my $last_id = TelBook::Model::CrudInterface::add($params);
+        $params ->{id} = $last_id;
+        $data = TelBook::Model::CrudInterface::show($params);
+diff --git a/lib/TelBook/Model/CrudInterface.pm b/lib/TelBook/Model/CrudInterface.pm
+index ed7809b..d84fe89 100644
+--- a/lib/TelBook/Model/CrudInterface.pm
++++ b/lib/TelBook/Model/CrudInterface.pm
+@@ -3,7 +3,7 @@ use Modern::Perl;
+ use Moose;
+ use DBI;
+ use Data::Dumper;
+-use YAML::XS qw(LoadFile);
++use YAML::XS qw(LoadFile);
+ use namespace::autoclean;
+
+ extends 'Catalyst::Model';
+@@ -15,20 +15,20 @@ my $dbh;
+
+
+ #ÐŸÐ¾Ð´ÐºÐ»ÑŽÑ‡ÐµÐ½Ð¸Ðµ Ðº ÑÐµÑ€Ð²ÐµÑ€Ñƒ MySQL
+-sub connect_db {
++sub connect_db {
+
+ my $database = $data->{Connect_data}{database};
+ my $user = $data->{Connect_data}{user};
+ my $password = $data->{Connect_data}{password};
+ my $host = $data->{Connect_data}{host};
+
+-my $data_source = "DBI:mysql:database=$database;host=$host";
++my $data_source = "DBI:mysql:database=$database;host=$host";
+ $dbh = DBI ->connect ($data_source, $user, $password)
+    or die "Not conneted";
+ return 1;
+ }
+
+-# Ð§Ð¸ÑÐ»Ð¾ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†
++# Ð§Ð¸ÑÐ»Ð¾ ÑÑ‚Ñ€Ð°Ð½Ð¸Ñ†
+ sub total_rec_count {
+    my ($params) = @_;
+    connect_db();
+@@ -42,7 +42,7 @@ sub total_rec_count {
+ sub delete_row {
+    my ($self, $id) = @_;
+    connect_db();
+-   my $sql = "DELETE FROM telephone_book
++   my $sql = "DELETE FROM telephone_book
+        WHERE id = ?";
+    if ($id =~ m/\d{1,11}/){
+        my $sth = $dbh -> prepare("$sql")
+@@ -74,7 +74,7 @@ sub edit {
+
+    foreach my $one_set (@set){
+        if ($one_set){
+-           my $sql = "UPDATE telephone_book
++           my $sql = "UPDATE telephone_book
+            SET $one_set
+            WHERE id=? ";
+            my $sth =$dbh -> prepare ("$sql")
+@@ -86,7 +86,7 @@ sub edit {
+    return 1;
+ }
+
+-# ÐŸÐ¾ÐºÐ°Ð· Ð´Ð°Ð½Ð½Ñ‹Ñ…
++# ÐŸÐ¾ÐºÐ°Ð· Ð´Ð°Ð½Ð½Ñ‹Ñ…
+ sub show {
+    my ($params) = @_;
+    connect_db();
+@@ -95,7 +95,7 @@ sub show {
+    my $limit = '';
+
+    # Ð’Ñ‹Ð²Ð¾Ð´ Ð´Ð°Ð½Ð½Ñ‹Ñ… Ð¿Ð¾ ID
+-   if ($params->{id} =~ m/\d{1,11}/){
++   if ($params->{id} =~ m/\d{1,11}/){
+        $where = "id=".$params->{id};
+    }
+    else {
+@@ -110,10 +110,10 @@ sub show {
+    # Ð¡Ð¾Ñ€Ñ‚Ð¸Ñ€Ð¾Ð²ÐºÐ°
+    if ( $params->{sorting} ) {
+        $sort = "ORDER BY ".$params->{sorting};
+-   }
++   }
+
+    my $sql ="
+-       SELECT *
++       SELECT *
+        FROM telephone_book
+        WHERE $where
+        $sort
+@@ -123,7 +123,7 @@ sub show {
+        {Columns=>{} } );
+ }
+
+-# Ð’Ñ‚Ð°Ð²ÐºÐ° Ð´Ð°Ð½Ð½Ñ‹Ñ…
++# Ð’Ñ‚Ð°Ð²ÐºÐ° Ð´Ð°Ð½Ð½Ñ‹Ñ…
+ sub add {
+    my ($params) = @_;
+    connect_db();
+@@ -134,7 +134,7 @@ sub add {
+    }
+
+    foreach (@array) {
+-           if ($_ =~ m /(^(.{3,50});(.{3,15});(\d{1,11})$)/){
++           if ($_ =~ m /(^(.{3,50});(.{3,15});(.{1,11})$)/){
+            my $name_i = $2;
+            my $phone_i = $3;
+            my $work_place_id_i = $4;
+@@ -179,4 +179,4 @@ it under the same terms as Perl itself.
+
+ __PACKAGE__->meta->make_immutable;
+
+-1;
+\ No newline at end of file
++1;

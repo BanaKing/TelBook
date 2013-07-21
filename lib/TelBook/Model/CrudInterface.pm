@@ -3,7 +3,7 @@ use Modern::Perl;
 use Moose;
 use DBI;
 use Data::Dumper;
-use YAML::XS qw(LoadFile); 
+use YAML::XS qw(LoadFile);
 use namespace::autoclean;
 
 extends 'Catalyst::Model';
@@ -15,20 +15,20 @@ my $dbh;
 
 
 #Подключение к серверу MySQL
-sub connect_db { 
+sub connect_db {
 
 my $database = $data->{Connect_data}{database};
 my $user = $data->{Connect_data}{user};
 my $password = $data->{Connect_data}{password};
 my $host = $data->{Connect_data}{host};
 
-my $data_source = "DBI:mysql:database=$database;host=$host";	
+my $data_source = "DBI:mysql:database=$database;host=$host";
 $dbh = DBI ->connect ($data_source, $user, $password)
 	or die "Not conneted";
 return 1;
 }
 
-# Число страниц 
+# Число страниц
 sub total_rec_count {
 	my ($params) = @_;
 	connect_db();
@@ -42,7 +42,7 @@ sub total_rec_count {
 sub delete_row {
 	my ($self, $id) = @_;
 	connect_db();
-	my $sql = "DELETE FROM telephone_book 
+	my $sql = "DELETE FROM telephone_book
 		WHERE id = ?";
 	if ($id =~ m/\d{1,11}/){
 		my $sth = $dbh -> prepare("$sql")
@@ -74,7 +74,7 @@ sub edit {
 
 	foreach my $one_set (@set){
 		if ($one_set){
-			my $sql = "UPDATE telephone_book 
+			my $sql = "UPDATE telephone_book
 			SET $one_set
 			WHERE id=? ";
 			my $sth =$dbh -> prepare ("$sql")
@@ -86,7 +86,7 @@ sub edit {
 	return 1;
 }
 
-# Показ данных 
+# Показ данных
 sub show {
 	my ($params) = @_;
 	connect_db();
@@ -95,7 +95,7 @@ sub show {
 	my $limit = '';
 
 	# Вывод данных по ID
-	if ($params->{id} =~ m/\d{1,11}/){	 
+	if ($params->{id} =~ m/\d{1,11}/){
 		$where = "id=".$params->{id};
 	}
 	else {
@@ -110,10 +110,10 @@ sub show {
 	# Сортировка
 	if ( $params->{sorting} ) {
 		$sort = "ORDER BY ".$params->{sorting};
-	}  
+	}
 
 	my $sql ="
-		SELECT * 
+		SELECT *
 		FROM telephone_book
 		WHERE $where
 		$sort
@@ -123,7 +123,7 @@ sub show {
 		{Columns=>{} } );
 }
 
-# Втавка данных 
+# Втавка данных
 sub add {
 	my ($params) = @_;
 	connect_db();
@@ -134,7 +134,7 @@ sub add {
 	}
 
 	foreach (@array) {
-			if ($_ =~ m /(^(.{3,50});(.{3,15});(\d{1,11})$)/){
+			if ($_ =~ m /(^(.{3,50});(.{3,15});(.{1,11})$)/){
 			my $name_i = $2;
 			my $phone_i = $3;
 			my $work_place_id_i = $4;

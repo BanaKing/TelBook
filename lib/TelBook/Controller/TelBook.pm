@@ -113,7 +113,7 @@ sub add : Chained('/') :PathPart('telbook/add') :Args() {
         work_place_id	=> $p->{work_place_id} || 0,
     };
 
-    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,50}/){
+    if ($params->{name}=~ m/.{3,50}/ ,$params->{phone} =~ m/.{3,15}/, $params->{work_place_id} =~ m/.{1,11}/){
      	my $last_id = TelBook::Model::CrudInterface::add($params);
      	$params ->{id} = $last_id;
      	$data = TelBook::Model::CrudInterface::show($params);
